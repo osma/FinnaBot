@@ -56,7 +56,7 @@ def search_finna(keyword):
     """search Finna using the given keyword and return a single, random result, or None if no results"""
     fields = ['title','images','nonPresenterAuthors','buildings','id','year']
     params = {'filter':'format:0/Image/','lookfor':keyword,'lng':'fi','limit':100,'field[]':fields}
-    r = requests.get(FINNA_API_SEARCH, params=params)
+    r = requests.get(FINNA_API_SEARCH, params=params, headers={'User-Agent': BOT_NAME})
     response = r.json()
     if 'records' in response:
         results = [transform_hit(hit) for hit in response['records']]
@@ -153,7 +153,7 @@ def process_tweet(tweet, reply=False):
     response = parse_tweet(tweet, reply)
     if response and response['text'] is not None:
         imgurl = FINNA_IMAGE_URL + response['result']['image']
-        r = requests.get(imgurl)
+        r = requests.get(imgurl, headers={'User-Agent': BOT_NAME})
         if len(r.content) < IMAGE_MINSIZE_BYTES:
             print "* image too small (%d bytes), aborting" % len(r.content)
             return
