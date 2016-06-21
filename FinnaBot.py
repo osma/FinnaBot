@@ -24,6 +24,7 @@ FINNA_API_SEARCH='https://api.finna.fi/v1/search'
 FINNA_RECORD_URL='https://www.finna.fi/Record/'
 FINNA_IMAGE_URL='https://api.finna.fi'
 
+STATUS_MAXCOUNT=5 # maximum number of status messages to process per cycle
 TWEET_MAXLENGTH=116 # maximum length of the text part, excluding image link
 HASHTAG_BLACKLIST=['pinnalla','viraali','finland']
 HASHTAG_MINLENGTH=4
@@ -196,13 +197,13 @@ since_id = 1
 
 while True:
     print "* Querying for @mentions since", since_id
-    for tweet in t.statuses.mentions_timeline(since_id=since_id):
+    for tweet in t.statuses.mentions_timeline(since_id=since_id, count=STATUS_MAXCOUNT):
         if int(tweet['id']) > since_id:
             since_id = int(tweet['id'])
         process_tweet(tweet, reply=True)
 
     print "* Querying for status of followed users since", since_id
-    for tweet in t.statuses.home_timeline(since_id=since_id):
+    for tweet in t.statuses.home_timeline(since_id=since_id, count=STATUS_MAXCOUNT):
         if int(tweet['id']) > since_id:
             since_id = int(tweet['id'])
         process_tweet(tweet)
