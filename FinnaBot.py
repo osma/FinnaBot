@@ -61,7 +61,10 @@ def search_finna(keyword):
     if 'records' in response:
         results = [transform_hit(hit) for hit in response['records']]
         validated_results = filter(validate_result, results)
-        return random.choice(validated_results)
+        if len(validated_results) > 0:
+            return random.choice(validated_results)
+        else:
+            return None
     else:
         return None
 
