@@ -56,7 +56,8 @@ def validate_result(result):
 def search_finna(keyword):
     """search Finna using the given keyword and return a single, random result, or None if no results"""
     fields = ['title','images','nonPresenterAuthors','buildings','id','year']
-    params = {'filter':'format:0/Image/','lookfor':keyword,'lng':'fi','limit':100,'field[]':fields}
+    filters = ['format:0/Image/', 'online_boolean:1']
+    params = {'filter[]': filters,'lookfor':keyword,'lng':'fi','limit':100,'field[]':fields}
     r = requests.get(FINNA_API_SEARCH, params=params, headers={'User-Agent': BOT_NAME})
     response = r.json()
     if 'records' in response:
