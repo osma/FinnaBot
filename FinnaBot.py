@@ -10,6 +10,7 @@ import random
 import urllib
 import time
 import StringIO
+import logging
 
 BOT_NAME='Finna Bot'
 SCREEN_NAME='FinnaBot'
@@ -123,15 +124,14 @@ def compose_tweet(tag, result, reply_to_user):
     length = len(text) - len(url) + 23 # correct for URL shortening
     if length > TWEET_MAXLENGTH:
         return # failed creating a proper length tweet
-    print length, text
+    logging.debug("%d: %s", length, text)
     return text
 
 def parse_tweet(tweet, reply=False):
     """parse a single incoming tweet, returning a (text, result) tuple"""
     if tweet['user']['screen_name'] == SCREEN_NAME:
         return None # ignore my own tweets
-    print tweet['created_at'], '@'+tweet['user']['screen_name'] + ':', 
-    print tweet['text']
+    logging.info("%s @%s: %s", tweet['created_at'], tweet['user']['screen_name'], tweet['text'])
     hashtags = [h['text'] for h in tweet['entities']['hashtags']]
     tag_results = {}
     for tag in hashtags:
@@ -160,16 +160,16 @@ def process_tweet(tweet, reply=False):
         imgurl = FINNA_IMAGE_URL + response['result']['image']
         r = requests.get(imgurl, headers={'User-Agent': BOT_NAME})
         if len(r.content) < IMAGE_MINSIZE_BYTES:
-            print "* image too small (%d bytes), aborting" % len(r.content)
+            logging.warning("* image too small (%d bytes), aborting", len(r.content))
             return
         elif len(r.content) > IMAGE_MAXSIZE_BYTES:
-            print "* scaling image (size: %s bytes)" % len(r.content)
+            logging.info("* scaling image (size: %s bytes)", len(r.content))
             img = Image.open(StringIO.StringIO(r.content))
             img.thumbnail(IMAGE_MAXSIZE_SCALED, Image.ANTIALIAS)
             imgout = StringIO.StringIO()
             img.save(imgout, format='JPEG')
             imgdata = imgout.getvalue()
-            print "* scaled image size: %s bytes" % len(imgdata)
+            logging.debug("* scaled image size: %s bytes", len(imgdata))
             imgout.close()
         else:
             imgdata=r.content
@@ -179,8 +179,9 @@ def process_tweet(tweet, reply=False):
             t.statuses.update(status=response['text'], media_ids=img_id, in_reply_to_status_id=response['in_reply_to'])
         else:
             t.statuses.update(status=response['text'], media_ids=img_id)
-        print "* Tweet successfully sent."
+        logging.info("* Tweet successfully sent.")
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
 
 MY_TWITTER_CREDS = os.path.expanduser(CREDENTIALS_FILE)
 if not os.path.exists(MY_TWITTER_CREDS):
@@ -198,18 +199,18 @@ t_upload = twitter.Twitter(domain='upload.twitter.com',
 since_id = 1
 for tweet in t.statuses.user_timeline(screen_name=SCREEN_NAME, count=1):
     since_id = max(since_id, int(tweet['id']))
-print "* Initialized since_id to %d" % since_id
+logging.debug("* Initialized since_id to %d", since_id)
 
 while True:
-    print "* Querying for @mentions since", since_id
+    logging.info("* Querying for @mentions since %d", since_id)
     for tweet in t.statuses.mentions_timeline(since_id=since_id, count=STATUS_MAXCOUNT):
         since_id = max(since_id, int(tweet['id']))
         process_tweet(tweet, reply=True)
 
-    print "* Querying for status of followed users since", since_id
+    logging.info("* Querying for status of followed users since %d", since_id)
     for tweet in t.statuses.home_timeline(since_id=since_id, count=STATUS_MAXCOUNT):
         since_id = max(since_id, int(tweet['id']))
         process_tweet(tweet)
     
-    print "* Sleeping..."
+    logging.info("* Sleeping...")
     time.sleep(60)
