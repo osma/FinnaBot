@@ -27,7 +27,7 @@ FINNA_IMAGE_URL='https://api.finna.fi'
 
 STATUS_MAXCOUNT=20 # maximum number of status messages to process per cycle
 TWEET_MAXLENGTH=116 # maximum length of the text part, excluding image link
-HASHTAG_BLACKLIST=['pinnalla','viraali','finland']
+HASHTAG_BLACKLIST=['pinnalla','viraali','finland','mielipide','puheenvuoro']
 HASHTAG_MINLENGTH=4
 IMAGE_MINSIZE_BYTES=1024 # minimum size of image in bytes; smaller ones won't be tweeted
 IMAGE_MAXSIZE_BYTES=1024*1024 # maximum size of image in bytes; larger images will be scaled down
@@ -49,8 +49,10 @@ def transform_hit(hit):
     return data
     
 def validate_result(result):
-    """make sure we have enough metadata to produce a sensible tweet"""
+    """make sure we have enough metadata to produce a sensible tweet, and avoid posting the same twice"""
     if 'image' not in result:
+        return False
+    if result['id'] in already_posted:
         return False
     return True
 
@@ -179,6 +181,7 @@ def process_tweet(tweet, reply=False):
             t.statuses.update(status=response['text'], media_ids=img_id, in_reply_to_status_id=response['in_reply_to'])
         else:
             t.statuses.update(status=response['text'], media_ids=img_id)
+        already_posted.add(response['result']['id'])
         logging.info("* Tweet successfully sent.")
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
@@ -200,6 +203,9 @@ since_id = 1
 for tweet in t.statuses.user_timeline(screen_name=SCREEN_NAME, count=1):
     since_id = max(since_id, int(tweet['id']))
 logging.debug("* Initialized since_id to %d", since_id)
+
+# keep track of already posted record IDs
+already_posted = set()
 
 while True:
     logging.info("* Querying for @mentions since %d", since_id)
