@@ -26,7 +26,7 @@ FINNA_RECORD_URL='https://www.finna.fi/Record/'
 FINNA_IMAGE_URL='https://api.finna.fi'
 
 STATUS_MAXCOUNT=20 # maximum number of status messages to process per cycle
-TWEET_MAXLENGTH=116 # maximum length of the text part, excluding image link
+TWEET_MAXLENGTH=139 # maximum length of the text part, excluding image link
 HASHTAG_BLACKLIST=['pinnalla','viraali','finland','mielipide','puheenvuoro']
 HASHTAG_MINLENGTH=4
 IMAGE_MINSIZE_BYTES=1024 # minimum size of image in bytes; smaller ones won't be tweeted
