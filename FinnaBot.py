@@ -219,4 +219,4 @@ while True:
         process_tweet(tweet)
     
     logging.info("* Sleeping...")
-    time.sleep(60)
+    time.sleep(90)
