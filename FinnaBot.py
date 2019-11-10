@@ -38,7 +38,7 @@ def transform_hit(hit):
     data = {}
     if 'title' in hit:
         data['title'] = hit['title']
-    if 'images' in hit:
+    if 'images' in hit and hit['images']:
         data['image'] = hit['images'][0]
     if 'nonPresenterAuthors' in hit:
         data['author'] = ', '.join(a['name'] for a in hit['nonPresenterAuthors'])
