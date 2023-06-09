@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import twitter
 import requests
@@ -9,7 +9,7 @@ import os.path
 import random
 import urllib
 import time
-import StringIO
+from io import StringIO
 import logging
 
 BOT_NAME='Finna Bot'
