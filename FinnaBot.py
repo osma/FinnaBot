@@ -7,7 +7,7 @@ from PIL import Image
 import re
 import os.path
 import random
-import urllib
+import urllib.parse
 import time
 from io import StringIO
 import logging
@@ -65,7 +65,7 @@ def search_finna(keyword):
     response = r.json()
     if 'records' in response:
         results = [transform_hit(hit) for hit in response['records']]
-        validated_results = filter(validate_result, results)
+        validated_results = list(filter(validate_result, results))
         if len(validated_results) > 0:
             return random.choice(validated_results)
         else:
@@ -111,7 +111,7 @@ def shorten_title(title, maxlength):
 def compose_tweet(tag, result, reply_to_user):
     """compose a tweet based on a Finna result. Return the tweet text, or None if composing failed"""
     author_info = author_statement(result)
-    url = FINNA_RECORD_URL + urllib.quote(result['id'])
+    url = FINNA_RECORD_URL + urllib.parse.quote(result['id'], safe='')
     text = "%s %s #%s" % (author_info, url, tag)
     if reply_to_user is not None:
         prepend = '.@%s ' % reply_to_user
@@ -142,7 +142,7 @@ def parse_tweet(tweet, reply=False):
             tag_results[tag]=result
     # choose which tag we will use
     if len(tag_results) > 0:
-        tag = random.choice(tag_results.keys())
+        tag = random.choice(list(tag_results.keys()))
         if reply:
             reply_to_user = tweet['user']['screen_name']
         else:
